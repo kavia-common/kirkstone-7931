@@ -1,0 +1,14 @@
+[Unit]
+Description=Matter Lighting App POC Instance (%i)
+After=network-online.target otbr-agent.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/matter/poc.env
+# BLE device 0 is typical for RPi4 BTLE; KVS path unique per instance name
+ExecStart=/usr/bin/lighting-app --wifi --thread --ble-device 0 --KVS ${MATTER_STORAGE_DIR:-/var/lib/matter}/lighting-%i
+Restart=on-failure
+
+[Install]
+WantedBy=matter-demo.target

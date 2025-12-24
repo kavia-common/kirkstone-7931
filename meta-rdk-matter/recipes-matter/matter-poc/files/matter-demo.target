@@ -1,0 +1,6 @@
+[Unit]
+Description=Matter POC Demo Target
+Wants=otbr-agent.service otbr-web.service
+
+[Install]
+WantedBy=multi-user.target

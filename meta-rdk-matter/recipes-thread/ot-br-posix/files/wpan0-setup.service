@@ -1,0 +1,17 @@
+[Unit]
+Description=POC: Prepare wpan0 Thread interface prior to OTBR
+DefaultDependencies=no
+Before=otbr-agent.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Try to bring up wpan0 via ot-ctl; tolerate failure if not initialized yet
+ExecStart=/bin/sh -c 'ot-ctl state || true; ip link set wpan0 up || true'
+# Ensure IPv6 forwarding for border routing (POC)
+ExecStart=/bin/sh -c "sysctl -w net.ipv6.conf.all.forwarding=1 || true"
+
+[Install]
+WantedBy=multi-user.target

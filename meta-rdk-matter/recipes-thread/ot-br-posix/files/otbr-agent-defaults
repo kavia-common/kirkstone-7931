@@ -1,0 +1,4 @@
+# POC defaults for otbr-agent; adjust via image or runtime if needed.
+# Backhaul default to eth0; MATTER_PRIMARY_IFACE can override in apps.
+# Typical RPi4 UART for RCP/SoC radio; adjust baudrate as needed.
+OTBR_AGENT_OPTS="-I wpan0 -B eth0 --radio-url spinel+hdlc+uart:///dev/ttyAMA0?uart-baudrate=115200"

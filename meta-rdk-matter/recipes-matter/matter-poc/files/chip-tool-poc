@@ -1,0 +1,9 @@
+#!/bin/sh
+# Lightweight wrapper for chip-tool in POC environment
+[ -f /etc/matter/poc.env ] && . /etc/matter/poc.env
+STOREDIR="${MATTER_STORAGE_DIR:-/var/lib/matter}"
+# Ensure storedir exists
+mkdir -p "${STOREDIR}" 2>/dev/null || true
+
+# Delegate to chip-tool with consistent storage path
+exec /usr/bin/chip-tool --storedir "${STOREDIR}" "$@"

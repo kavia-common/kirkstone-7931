@@ -1,0 +1,9 @@
+#!/bin/sh
+# POC-only reset of Matter storage directory
+[ -f /etc/matter/poc.env ] && . /etc/matter/poc.env
+STOREDIR="${MATTER_STORAGE_DIR:-/var/lib/matter}"
+
+echo "Matter POC factory reset: removing ${STOREDIR}/*"
+rm -rf "${STOREDIR:?}/"* 2>/dev/null || true
+mkdir -p "${STOREDIR}" 2>/dev/null || true
+echo "Done."
