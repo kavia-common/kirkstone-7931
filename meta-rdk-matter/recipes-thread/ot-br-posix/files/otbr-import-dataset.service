@@ -1,0 +1,31 @@
+[Unit]
+Description=OTBR POC: Import default Thread dataset if none present
+DefaultDependencies=no
+Before=otbr-agent.service
+ConditionPathExists=/etc/otbr/poc-dataset.hex
+After=network-online.target wpan0-setup.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/otbr-agent
+ExecStart=/bin/sh -c '\
+  PATH=/usr/sbin:/sbin:/usr/bin:/bin; \
+  set -e; \
+  if ! command -v wpanctl >/dev/null 2>&1; then \
+    echo "otbr-import-dataset: wpanctl not found"; exit 0; \
+  fi; \
+  if wpanctl status 2>/dev/null | grep -qE "Network\\s*Name"; then \
+    echo "otbr-import-dataset: Thread dataset already active. Skipping import."; exit 0; \
+  fi; \
+  if [ ! -s /etc/otbr/poc-dataset.hex ]; then \
+    echo "otbr-import-dataset: dataset file missing or empty. Skipping."; exit 0; \
+  fi; \
+  echo "otbr-import-dataset: importing dataset from /etc/otbr/poc-dataset.hex"; \
+  wpanctl dataset import -f /etc/otbr/poc-dataset.hex || { echo "otbr-import-dataset: import failed"; exit 0; }; \
+  wpanctl dataset commit active || true; \
+  wpanctl attach || true; \
+  exit 0'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

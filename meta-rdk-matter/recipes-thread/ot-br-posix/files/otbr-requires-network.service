@@ -1,0 +1,24 @@
+[Unit]
+Description=OTBR POC: Ensure uplink network appears online
+After=network-online.target
+Before=otbr-agent.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '\
+  PATH=/usr/sbin:/sbin:/usr/bin:/bin; \
+  uplink="eth0"; \
+  if ip -o link show wlan0 >/dev/null 2>&1; then uplink="wlan0"; fi; \
+  echo "otbr-requires-network: checking routes on ${uplink}"; \
+  i=0; \
+  while [ $i -lt 5 ]; do \
+    if ip -6 route show dev ${uplink} default >/dev/null 2>&1 || ip -4 route show dev ${uplink} default >/dev/null 2>&1; then \
+      echo "otbr-requires-network: ${uplink} has default route"; exit 0; \
+    fi; \
+    sleep 2; i=$((i+1)); \
+  done; \
+  echo "otbr-requires-network: WARNING no default route on ${uplink}, continuing to avoid boot loop."; \
+  exit 0'
+
+[Install]
+WantedBy=multi-user.target

@@ -1,4 +1,44 @@
-# Matter POC on RPi4 (Thread + optional Wi‑Fi)
+# Matter POC on RPi4
+
+Validation checklist (POC)
+1) First boot dataset import (if provided)
+- Place Thread dataset at /etc/otbr/poc-dataset.hex in image or via scp
+- Reboot once; verify import ran:
+  journalctl -u otbr-import-dataset.service -b
+  journalctl -u otbr-agent -b | tail -n 100
+- If dataset missing, system boots without errors.
+
+2) Network online and OTBR services
+- Ensure services active:
+  systemctl status otbr-requires-network otbr-agent otbr-web avahi-daemon
+- Check wpan0 and dataset:
+  ip link show wpan0
+  wpanctl status
+- Check IPv6 ULA on wpan0:
+  ip -6 addr show dev wpan0 | grep fd
+
+3) chip-tool persistence
+- env file: /etc/matter/chip-tool.env
+- storage dir: /var/lib/matter/chip-tool
+- Example commissioning (Thread-only Aqara T2):
+  chip-tool pairing onnetwork-long 12345 ${SETUP_PIN_CODE:-20202021} --commissioner-name poc --discriminator ${DISCRIMINATOR:-3840}
+  chip-tool operationalcredentials add-fabric 1 0
+  chip-tool onoff on 1 1
+- For Wi‑Fi device (optional):
+  chip-tool pairing onnetwork 12345 ${SETUP_PIN_CODE:-20202021}
+
+4) Healthcheck
+- Run:
+  systemctl start matter-poc-healthcheck.service
+  journalctl -u matter-poc-healthcheck -b
+
+Useful logs
+- journalctl -u wpan0-setup -u otbr-requires-network -u otbr-import-dataset -u otbr-agent -u otbr-web -u avahi-daemon -b
+- avahi-browse -rt _matter._tcp
+
+Notes
+- Set OTBR_NCP_PATH in /etc/default/otbr-agent to match your hardware (/dev/ttyAMA0 typical on RPi4 when BT disabled).
+- Services are ordered to avoid boot loops; warnings may be logged if uplink routes are not present yet. (Thread + optional Wi‑Fi)
 
 This POC adds minimal Yocto-native tweaks to enable reliable commissioning using OTBR on Raspberry Pi 4:
 - Deterministic `wpan0` bring-up before `otbr-agent`

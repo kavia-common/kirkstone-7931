@@ -1,0 +1,4 @@
+# POC: Ensure stable wpan0 symlink and permissions for OTBR NCP
+SUBSYSTEM=="tty", KERNEL=="ttyAMA0", SYMLINK+="wpan0", MODE="0660", GROUP="netdev"
+SUBSYSTEM=="tty", KERNEL=="ttyS0",   SYMLINK+="wpan0", MODE="0660", GROUP="netdev"
+SUBSYSTEM=="tty", KERNEL=="ttyACM[0-9]*", SYMLINK+="wpan0", MODE="0660", GROUP="netdev"

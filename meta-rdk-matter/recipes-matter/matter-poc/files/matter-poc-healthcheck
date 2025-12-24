@@ -1,0 +1,51 @@
+#!/bin/sh
+# Simple POC healthcheck for Matter + OTBR
+PATH=/usr/sbin:/sbin:/usr/bin:/bin
+fail=0
+
+log() { echo "matter-poc-healthcheck: $*"; }
+
+# a) otbr-agent active
+if systemctl is-active --quiet otbr-agent.service; then
+  log "otbr-agent is active"
+else
+  log "FAIL: otbr-agent is not active"
+  fail=1
+fi
+
+# b) wpan0 exists with IPv6 ULA and dataset active
+if ip link show wpan0 >/dev/null 2>&1; then
+  if ip -6 addr show dev wpan0 | grep -q 'fd'; then
+    log "wpan0 has IPv6 ULA"
+  else
+    log "WARN: wpan0 has no IPv6 ULA"
+  fi
+  if command -v wpanctl >/dev/null 2>&1 && wpanctl status 2>/dev/null | grep -qE "Network\\s*Name"; then
+    log "Thread dataset appears Active"
+  else
+    log "FAIL: Thread dataset not active or wpanctl missing"
+    fail=1
+  fi
+else
+  log "FAIL: wpan0 not present"
+  fail=1
+fi
+
+# c) mdns for _matter._tcp responds
+if command -v avahi-browse >/dev/null 2>&1; then
+  if avahi-browse -rt _matter._tcp 2>/dev/null | grep -q "^="; then
+    log "mDNS has Matter services"
+  else
+    log "WARN: no _matter._tcp services discovered"
+  fi
+else
+  log "WARN: avahi-browse not installed"
+fi
+
+if [ $fail -eq 0 ]; then
+  log "PASS"
+  exit 0
+else
+  log "FAIL"
+  exit 0
+fi

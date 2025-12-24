@@ -4,7 +4,12 @@ After=network-online.target avahi-daemon.service
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/bin/chip-tool pairing onnetwork 1 20202021
+EnvironmentFile=-/etc/matter/chip-tool.env
+Environment=CHIP_CONFIG_LOG_LEVEL=${CHIP_CONFIG_LOG_LEVEL:-INFO}
+Environment=DISCRIMINATOR=${DISCRIMINATOR:-3840}
+Environment=SETUP_PIN_CODE=${SETUP_PIN_CODE:-20202021}
+Environment=KVS_DIR=${KVS_DIR:-/var/lib/matter/chip-tool}
+ExecStart=/bin/sh -c 'mkdir -p "$${KVS_DIR}"; exec /usr/bin/chip-tool --storage-directory "$${KVS_DIR}"' pairing onnetwork 1 20202021
 Restart=on-failure
 RestartSec=5
 User=root

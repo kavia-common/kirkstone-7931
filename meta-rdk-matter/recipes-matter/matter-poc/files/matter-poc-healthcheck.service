@@ -1,0 +1,10 @@
+[Unit]
+Description=Matter POC Healthcheck
+After=network-online.target otbr-agent.service avahi-daemon.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/matter-poc-healthcheck
+
+[Install]
+WantedBy=multi-user.target
